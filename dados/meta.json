@@ -1,0 +1,237 @@
+{
+  "estado": "RS",
+  "municipios_total": 497,
+  "mapa_disponivel": [
+    {
+      "cargo": "governador",
+      "ano": 2006,
+      "turno": 1,
+      "arquivo": "governador_2006_t1.json"
+    },
+    {
+      "cargo": "governador",
+      "ano": 2006,
+      "turno": 2,
+      "arquivo": "governador_2006_t2.json"
+    },
+    {
+      "cargo": "governador",
+      "ano": 2010,
+      "turno": 1,
+      "arquivo": "governador_2010_t1.json"
+    },
+    {
+      "cargo": "governador",
+      "ano": 2014,
+      "turno": 1,
+      "arquivo": "governador_2014_t1.json"
+    },
+    {
+      "cargo": "governador",
+      "ano": 2014,
+      "turno": 2,
+      "arquivo": "governador_2014_t2.json"
+    },
+    {
+      "cargo": "governador",
+      "ano": 2018,
+      "turno": 1,
+      "arquivo": "governador_2018_t1.json"
+    },
+    {
+      "cargo": "governador",
+      "ano": 2018,
+      "turno": 2,
+      "arquivo": "governador_2018_t2.json"
+    },
+    {
+      "cargo": "governador",
+      "ano": 2022,
+      "turno": 1,
+      "arquivo": "governador_2022_t1.json"
+    },
+    {
+      "cargo": "governador",
+      "ano": 2022,
+      "turno": 2,
+      "arquivo": "governador_2022_t2.json"
+    },
+    {
+      "cargo": "prefeito",
+      "ano": 2008,
+      "turno": 1,
+      "arquivo": "prefeito_2008_t1.json"
+    },
+    {
+      "cargo": "prefeito",
+      "ano": 2008,
+      "turno": 2,
+      "arquivo": "prefeito_2008_t2.json"
+    },
+    {
+      "cargo": "prefeito",
+      "ano": 2012,
+      "turno": 1,
+      "arquivo": "prefeito_2012_t1.json"
+    },
+    {
+      "cargo": "prefeito",
+      "ano": 2012,
+      "turno": 2,
+      "arquivo": "prefeito_2012_t2.json"
+    },
+    {
+      "cargo": "prefeito",
+      "ano": 2016,
+      "turno": 1,
+      "arquivo": "prefeito_2016_t1.json"
+    },
+    {
+      "cargo": "prefeito",
+      "ano": 2016,
+      "turno": 2,
+      "arquivo": "prefeito_2016_t2.json"
+    },
+    {
+      "cargo": "prefeito",
+      "ano": 2020,
+      "turno": 1,
+      "arquivo": "prefeito_2020_t1.json"
+    },
+    {
+      "cargo": "prefeito",
+      "ano": 2020,
+      "turno": 2,
+      "arquivo": "prefeito_2020_t2.json"
+    },
+    {
+      "cargo": "prefeito",
+      "ano": 2024,
+      "turno": 1,
+      "arquivo": "prefeito_2024_t1.json"
+    },
+    {
+      "cargo": "prefeito",
+      "ano": 2024,
+      "turno": 2,
+      "arquivo": "prefeito_2024_t2.json"
+    },
+    {
+      "cargo": "presidente",
+      "ano": 2006,
+      "turno": 1,
+      "arquivo": "presidente_2006_t1.json"
+    },
+    {
+      "cargo": "presidente",
+      "ano": 2006,
+      "turno": 2,
+      "arquivo": "presidente_2006_t2.json"
+    },
+    {
+      "cargo": "presidente",
+      "ano": 2010,
+      "turno": 1,
+      "arquivo": "presidente_2010_t1.json"
+    },
+    {
+      "cargo": "presidente",
+      "ano": 2010,
+      "turno": 2,
+      "arquivo": "presidente_2010_t2.json"
+    },
+    {
+      "cargo": "presidente",
+      "ano": 2014,
+      "turno": 1,
+      "arquivo": "presidente_2014_t1.json"
+    },
+    {
+      "cargo": "presidente",
+      "ano": 2014,
+      "turno": 2,
+      "arquivo": "presidente_2014_t2.json"
+    },
+    {
+      "cargo": "presidente",
+      "ano": 2018,
+      "turno": 1,
+      "arquivo": "presidente_2018_t1.json"
+    },
+    {
+      "cargo": "presidente",
+      "ano": 2018,
+      "turno": 2,
+      "arquivo": "presidente_2018_t2.json"
+    },
+    {
+      "cargo": "presidente",
+      "ano": 2022,
+      "turno": 1,
+      "arquivo": "presidente_2022_t1.json"
+    },
+    {
+      "cargo": "presidente",
+      "ano": 2022,
+      "turno": 2,
+      "arquivo": "presidente_2022_t2.json"
+    },
+    {
+      "cargo": "senador",
+      "ano": 2006,
+      "turno": 1,
+      "arquivo": "senador_2006_t1.json"
+    },
+    {
+      "cargo": "senador",
+      "ano": 2010,
+      "turno": 1,
+      "arquivo": "senador_2010_t1.json"
+    },
+    {
+      "cargo": "senador",
+      "ano": 2014,
+      "turno": 1,
+      "arquivo": "senador_2014_t1.json"
+    },
+    {
+      "cargo": "senador",
+      "ano": 2018,
+      "turno": 1,
+      "arquivo": "senador_2018_t1.json"
+    },
+    {
+      "cargo": "senador",
+      "ano": 2022,
+      "turno": 1,
+      "arquivo": "senador_2022_t1.json"
+    }
+  ],
+  "anos_gerais": [
+    2006,
+    2010,
+    2014,
+    2018,
+    2022
+  ],
+  "anos_municipais": [
+    2008,
+    2012,
+    2016,
+    2020,
+    2024
+  ],
+  "cargos_gerais": [
+    "presidente",
+    "governador",
+    "senador"
+  ],
+  "cargos_municipais": [
+    "prefeito"
+  ],
+  "cargos_legislativos": [
+    "deputado_federal",
+    "deputado_estadual",
+    "vereador"
+  ]
+}
