@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Atlas Eleitoral · RS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<style>
+:root {
+  --black:    #0C0C0C;
+  --white:    #F8F8F6;
+  --red:      #C0001A;
+  --g50:      #F4F4F2;
+  --g100:     #EBEBEA;
+  --g200:     #D8D8D6;
+  --g400:     #9A9A98;
+  --g600:     #585856;
+  --g700:     #383836;
+  --header-h: 54px;
+  --left-w:   268px;
+  --right-w:  344px;
+  --f-serif:  'Playfair Display', Georgia, serif;
+  --f-sans:   'IBM Plex Sans', 'Helvetica Neue', sans-serif;
+  --r:        3px;
+  --ease:     0.17s ease;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{font-family:var(--f-sans);background:var(--white);color:var(--black);font-size:13px;-webkit-font-smoothing:antialiased}
+button{font-family:inherit;cursor:pointer}
+
+#hdr{height:var(--header-h);background:var(--black);display:flex;align-items:center;padding:0 18px;gap:20px;position:relative;z-index:1000;border-bottom:3px solid var(--red);flex-shrink:0}
+#logo{font-family:var(--f-serif);font-size:17px;font-weight:900;color:var(--white);letter-spacing:.5px;white-space:nowrap;flex-shrink:0;line-height:1}
+#logo em{color:var(--red);font-style:normal}
+#logo sup{font-family:var(--f-sans);font-size:9px;font-weight:500;color:var(--g400);letter-spacing:2px;text-transform:uppercase;margin-left:4px;vertical-align:middle}
+.hdiv{width:1px;height:22px;background:#2A2A2A;flex-shrink:0}
+#tabs{display:flex;gap:2px}
+.tab{padding:7px 16px;font-size:11px;font-weight:600;letter-spacing:.9px;text-transform:uppercase;color:var(--g400);background:transparent;border:none;transition:color var(--ease);position:relative}
+.tab::after{content:'';position:absolute;bottom:-5px;left:16px;right:16px;height:2px;background:var(--red);transform:scaleX(0);transition:transform var(--ease);border-radius:1px}
+.tab.on{color:var(--white)}
+.tab.on::after{transform:scaleX(1)}
+.tab:hover{color:#ccc}
+#scope{margin-left:auto;display:flex;align-items:center;gap:8px;color:var(--g400);font-size:11px}
+#scope-badge{background:#1C1C1C;border:1px solid #2E2E2E;color:var(--white);padding:3px 10px;border-radius:20px;font-size:10px;letter-spacing:.8px;font-weight:500;transition:all var(--ease)}
+#scope-badge.on{border-color:var(--red);color:var(--red)}
+
+#app{display:flex;height:calc(100vh - var(--header-h))}
+
+#lp{width:var(--left-w);background:var(--white);border-right:1px solid var(--g200);display:flex;flex-direction:column;overflow-y:auto;flex-shrink:0}
+#lp::-webkit-scrollbar{width:3px}
+#lp::-webkit-scrollbar-thumb{background:var(--g200);border-radius:2px}
+.ps{padding:14px 15px 12px;border-bottom:1px solid var(--g100)}
+.slabel{font-size:8.5px;font-weight:600;letter-spacing:1.4px;text-transform:uppercase;color:var(--g400);margin-bottom:9px}
+.chips{display:flex;flex-wrap:wrap;gap:3px}
+.chip{padding:5px 9px;font-size:11px;font-weight:500;background:var(--g100);color:var(--g600);border:1px solid var(--g200);border-radius:var(--r);transition:all var(--ease);white-space:nowrap;line-height:1}
+.chip:hover{background:var(--g200);color:var(--black)}
+.chip.on{background:var(--black);color:var(--white);border-color:var(--black)}
+#legend-wrap{padding:14px 15px;flex:1}
+.leg-title{font-size:8.5px;font-weight:600;letter-spacing:1.4px;text-transform:uppercase;color:var(--g400);margin-bottom:10px}
+#legend-items{display:flex;flex-direction:column;gap:5px}
+.li{display:flex;align-items:center;gap:8px;font-size:11.5px;color:var(--g700);cursor:pointer;border-radius:var(--r);padding:3px 4px;transition:background var(--ease)}
+.li:hover{background:var(--g100)}
+.li-dot{width:11px;height:11px;border-radius:2px;flex-shrink:0}
+.li-info{flex:1;min-width:0}
+.li-nome{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.li-partido{font-size:9.5px;color:var(--g400);margin-top:1px}
+.li-count{font-size:10px;color:var(--g400);font-weight:600;white-space:nowrap}
+#lp-foot{padding:10px 15px;border-top:1px solid var(--g100);font-size:9px;color:var(--g400);line-height:1.6}
+
+#map-wrap{flex:1;position:relative;overflow:hidden}
+#map{width:100%;height:100%}
+#maplabel{position:absolute;top:12px;left:12px;z-index:500;background:rgba(248,248,246,.96);border:1px solid var(--g200);border-left:3px solid var(--red);padding:8px 12px;border-radius:var(--r);pointer-events:none;backdrop-filter:blur(4px)}
+#ml-cargo{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.9px;color:var(--g400)}
+#ml-titulo{font-family:var(--f-serif);font-size:14px;font-weight:700;color:var(--black);line-height:1.2;margin-top:2px}
+#loading{position:absolute;inset:0;background:rgba(248,248,246,.88);display:flex;align-items:center;justify-content:center;z-index:700;opacity:0;pointer-events:none;transition:opacity .2s;backdrop-filter:blur(2px)}
+#loading.on{opacity:1;pointer-events:all}
+.spinner{width:30px;height:30px;border:2.5px solid var(--g200);border-top-color:var(--red);border-radius:50%;animation:spin .65s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+#rp{width:var(--right-w);background:var(--white);border-left:1px solid var(--g200);display:flex;flex-direction:column;overflow-y:auto;flex-shrink:0}
+#rp::-webkit-scrollbar{width:3px}
+#rp::-webkit-scrollbar-thumb{background:var(--g200);border-radius:2px}
+.rp-hdr{padding:13px 15px 11px;border-bottom:1px solid var(--g100);position:sticky;top:0;background:var(--white);z-index:10;display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+.rp-title{font-family:var(--f-serif);font-size:15px;font-weight:700;color:var(--black);line-height:1.2}
+.rp-sub{font-size:10.5px;color:var(--g400);margin-top:2px}
+.back-btn{font-size:10.5px;font-weight:600;color:var(--red);background:none;border:none;padding:4px 0;white-space:nowrap;flex-shrink:0}
+.back-btn:hover{text-decoration:underline}
+.rs{padding:12px 15px;border-bottom:1px solid var(--g100)}
+.rs:last-child{border-bottom:none}
+.rs-title{font-size:8.5px;font-weight:600;letter-spacing:1.4px;text-transform:uppercase;color:var(--g400);margin-bottom:10px}
+.tg{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px}
+.titem{background:var(--g50);border:1px solid var(--g100);border-radius:var(--r);padding:8px 10px}
+.ti-lbl{font-size:8.5px;text-transform:uppercase;letter-spacing:.8px;color:var(--g400);font-weight:600;margin-bottom:3px}
+.ti-val{font-family:var(--f-serif);font-size:14px;font-weight:700;color:var(--black);line-height:1}
+.ti-sub{font-size:9.5px;color:var(--g400);margin-top:2px}
+.ccard{border:1px solid var(--g200);border-radius:var(--r);padding:9px 11px;margin-bottom:5px;display:grid;grid-template-columns:10px 1fr auto;gap:0 9px;align-items:center;position:relative;overflow:hidden}
+.ccard::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--pc,var(--g200))}
+.ccard.hl{background:var(--g50);border-color:var(--pc,var(--g200))}
+.cdot{width:8px;height:8px;border-radius:50%;background:var(--pc,var(--g400));flex-shrink:0}
+.cinfo{min-width:0}
+.cnome{font-weight:600;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cpart{font-size:9.5px;color:var(--g400);margin-top:1px}
+.cstat{grid-column:2/-1;justify-self:start;font-size:8.5px;font-weight:700;letter-spacing:.4px;padding:2px 7px;border-radius:2px;margin-top:3px}
+.cstat.eleito{background:#E8F5E9;color:#2E7D32}
+.cstat.seg{background:#FFF8E1;color:#E65100}
+.cvotos{text-align:right}
+.cpct{font-family:var(--f-serif);font-size:16px;font-weight:700;line-height:1}
+.cabs{font-size:9.5px;color:var(--g400);margin-top:2px}
+.cbar-wrap{grid-column:1/-1;height:2px;background:var(--g100);border-radius:1px;margin-top:5px;overflow:hidden}
+.cbar{height:100%;border-radius:1px;background:var(--pc,var(--g400));transition:width .4s ease}
+.rank-list{display:flex;flex-direction:column;gap:2px}
+.ri{display:grid;grid-template-columns:18px 1fr auto;gap:5px;align-items:center;padding:5px 6px;border-radius:var(--r);cursor:pointer;transition:background var(--ease)}
+.ri:hover{background:var(--g50)}
+.rnum{font-size:9.5px;font-weight:700;color:var(--g400);text-align:center}
+.rnome{font-size:11px;font-weight:500;color:var(--g700);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rpct{font-size:11.5px;font-weight:700;text-align:right;white-space:nowrap}
+.rbar-wrap{grid-column:2/-1;height:2px;background:var(--g100);border-radius:1px;margin-top:-1px}
+.rbar{height:100%;border-radius:1px}
+.cmp-item{margin-bottom:9px}
+.cmp-head{display:flex;justify-content:space-between;font-size:10px;margin-bottom:4px}
+.cmp-head strong{color:var(--black);font-weight:600}
+.cmp-diff{font-weight:700}
+.cmp-track{height:5px;background:var(--g100);border-radius:3px;overflow:hidden;position:relative}
+.cmp-fill{position:absolute;left:0;top:0;bottom:0;border-radius:3px;transition:width .4s}
+.cmp-vals{display:flex;justify-content:space-between;margin-top:3px;font-size:9px;color:var(--g400)}
+.demo-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+.ditem{background:var(--g50);border:1px solid var(--g100);border-radius:var(--r);padding:7px 9px}
+.dlbl{font-size:8.5px;text-transform:uppercase;letter-spacing:.8px;color:var(--g400);font-weight:600;margin-bottom:2px}
+.dval{font-size:13px;font-weight:600;color:var(--black)}
+.empty{padding:28px 16px;text-align:center;color:var(--g400);font-size:12px}
+.hidden{display:none!important}
+
+.leaflet-container{background:#E4E8EE!important;font-family:var(--f-sans)!important}
+.leaflet-control-zoom{border:1px solid var(--g200)!important;border-radius:var(--r)!important;box-shadow:none!important}
+.leaflet-control-zoom a{color:var(--black)!important}
+.leaflet-tooltip{background:var(--black)!important;color:var(--white)!important;border:none!important;border-radius:var(--r)!important;padding:7px 11px!important;font-family:var(--f-sans)!important;font-size:11px!important;line-height:1.5!important;box-shadow:0 3px 12px rgba(0,0,0,.25)!important;pointer-events:none!important}
+.leaflet-tooltip-top::before{border-top-color:var(--black)!important}
+.leaflet-control-attribution{font-size:9px!important}
+</style>
+</head>
+<body>
+
+<header id="hdr">
+  <div id="logo">ATLAS<em>·</em>ELEITORAL <sup>RS</sup></div>
+  <div class="hdiv"></div>
+  <div id="tabs">
+    <button class="tab on" data-tab="candidatos" onclick="switchTab('candidatos')">Candidatos</button>
+    <button class="tab"    data-tab="partidos"   onclick="switchTab('partidos')">Partidos</button>
+  </div>
+  <div id="scope">
+    <span id="scope-icon">🗺</span>
+    <span id="scope-badge">RIO GRANDE DO SUL</span>
+  </div>
+</header>
+
+<div id="app">
+  <aside id="lp">
+    <div class="ps">
+      <div class="slabel">Tipo de Eleição</div>
+      <div class="chips">
+        <button class="chip on" data-tipo="geral"     onclick="setTipo('geral')">Gerais</button>
+        <button class="chip"    data-tipo="municipal" onclick="setTipo('municipal')">Municipais</button>
+      </div>
+    </div>
+    <div class="ps">
+      <div class="slabel">Cargo</div>
+      <div class="chips" id="cargo-chips"></div>
+    </div>
+    <div class="ps">
+      <div class="slabel">Ano</div>
+      <div class="chips" id="ano-chips"></div>
+    </div>
+    <div class="ps" id="turno-ps">
+      <div class="slabel">Turno</div>
+      <div class="chips" id="turno-chips"></div>
+    </div>
+    <div id="legend-wrap">
+      <div class="leg-title">Legenda — municípios vencidos</div>
+      <div id="legend-items"><div style="font-size:11px;color:var(--g400)">Carregando...</div></div>
+    </div>
+    <div style="flex:1"></div>
+    <div id="lp-foot">Fonte: TSE · 2006–2024<br>Clique no município para detalhes</div>
+  </aside>
+
+  <div id="map-wrap">
+    <div id="map"></div>
+    <div id="maplabel">
+      <div id="ml-cargo">Presidente</div>
+      <div id="ml-titulo">2º Turno · 2022</div>
+    </div>
+    <div id="loading"><div class="spinner"></div></div>
+  </div>
+
+  <aside id="rp">
+    <div id="rp-content"></div>
+  </aside>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+// ═══════════════════════════════════════════
+//  ATLAS ELEITORAL RS  ·  v3 (pacotes)
+// ═══════════════════════════════════════════
+
+const BASE = 'dados';
+
+const CARGO_LABEL = {
+  presidente:'Presidente', governador:'Governador', senador:'Senador',
+  deputado_federal:'Dep. Federal', deputado_estadual:'Dep. Estadual',
+  prefeito:'Prefeito', vereador:'Vereador'
+};
+const CARGOS_GERAL     = ['presidente','governador','senador','deputado_federal','deputado_estadual'];
+const CARGOS_MUNICIPAL = ['prefeito'];
+const ANOS_GERAL       = [2006,2010,2014,2018,2022];
+const ANOS_MUNICIPAL   = [2008,2012,2016,2020,2024];
+
+const PC = {
+  'PT':'#CC0000','PL':'#1E3A7B','PSL':'#1E3A7B','PSDB':'#0095DA',
+  'MDB':'#D4920A','PMDB':'#D4920A','PP':'#2B5BA8','PDT':'#B22222',
+  'PSOL':'#6B0DAD','REDE':'#2E8B57','NOVO':'#E8600A','UNIÃO':'#15803D',
+  'DEM':'#15803D','PRD':'#0D9488','PSD':'#3B82F6','REPUBLICANOS':'#EA580C',
+  'PRB':'#EA580C','PCdoB':'#9B1C1C','SOLIDARIEDADE':'#C47E00',
+  'AVANTE':'#7C3AED','PODE':'#06B6D4','PTB':'#92400E','PV':'#16A34A',
+  'AGIR':'#65A30D','UP':'#DB2777','PSTU':'#BE123C','PCO':'#7F1D1D',
+  'default':'#6B7280'
+};
+const cor = p => PC[p] || PC.default;
+
+const fv  = n => n>=1e6?(n/1e6).toFixed(1).replace('.',',')+' M':n>=1e3?(n/1e3).toFixed(0)+' K':(n||0).toLocaleString('pt-BR');
+const fn  = n => (n||0).toLocaleString('pt-BR');
+const fp  = n => n!=null?n.toFixed(2).replace('.',',')+'%':'—';
+const frc = n => n!=null?'R$ '+n.toLocaleString('pt-BR',{maximumFractionDigits:0}):'—';
+
+function sClass(s) {
+  if (!s) return '';
+  const u = s.toUpperCase();
+  if (u.includes('ELEITO') && !u.includes('NÃO') && !u.includes('NAO')) return 'eleito';
+  if (u.includes('2º')||u.includes('TURNO')) return 'seg';
+  return '';
+}
+function sLabel(s) {
+  const c=sClass(s); return c==='eleito'?'Eleito ✓':c==='seg'?'2º Turno':'';
+}
+
+// ── State ────────────────────────────────────
+const ST = {
+  tab:'candidatos', tipo:'geral', cargo:'presidente',
+  ano:2022, turno:2, mun:null,
+  meta:null, geo:null, mapaData:null,
+  munIndice:null, pacoteCache:{}, munData:null,
+  partData:null
+};
+
+// ── Map ──────────────────────────────────────
+let MAP, GLAYER;
+
+function initMap() {
+  MAP = L.map('map',{center:[-29.5,-53.0],zoom:7,zoomControl:true,attributionControl:false});
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png',{maxZoom:13,minZoom:5}).addTo(MAP);
+  L.control.attribution({prefix:'© OpenStreetMap · CARTO'}).addTo(MAP);
+}
+
+function renderChoropleth() {
+  if (GLAYER) { MAP.removeLayer(GLAYER); GLAYER=null; }
+  if (!ST.geo||!ST.mapaData) return;
+  const md = ST.mapaData;
+
+  GLAYER = L.geoJSON(ST.geo, {
+    style: f => {
+      const d = md[f.properties.CD_MUN];
+      if (!d) return {fillColor:'#CCC',color:'#FFF',weight:0.6,fillOpacity:0.35};
+      const c=cor(d.partido_venc), p=d.pct_venc||50;
+      return {fillColor:c, fillOpacity:p<55?0.52:p<63?0.67:p<73?0.80:0.90, color:'#FFF', weight:0.7};
+    },
+    onEachFeature: (f,layer) => {
+      const cd=f.properties.CD_MUN, d=md[cd], nom=f.properties.NM_MUN||'—', cod=f.properties.cod_tse;
+      layer.bindTooltip(()=>{
+        if (!d) return `<strong>${nom}</strong><br><em>Sem dados</em>`;
+        return `<strong>${nom}</strong><br>${d.vencedor} · ${d.partido_venc}<br>${fp(d.pct_venc)} dos votos válidos`;
+      },{sticky:true,direction:'top'});
+      layer.on('mouseover',e=>{ if(ST.mun?.cdMun!==cd) e.target.setStyle({weight:2,color:'#333'}); });
+      layer.on('mouseout', e=>{ if(ST.mun?.cdMun!==cd) GLAYER.resetStyle(e.target); });
+      layer.on('click', ()=>loadMunicipio(cd,cod,nom));
+    }
+  }).addTo(MAP);
+}
+
+function highlightMun(cd) {
+  if (!GLAYER) return;
+  GLAYER.eachLayer(l=>{
+    if(l.feature.properties.CD_MUN===cd){l.setStyle({weight:2.5,color:'#0C0C0C'});l.bringToFront();}
+    else GLAYER.resetStyle(l);
+  });
+}
+
+// ── Data ─────────────────────────────────────
+async function get(url) {
+  const r=await fetch(url);
+  if(!r.ok) throw new Error(`${r.status} ${url}`);
+  return r.json();
+}
+const load = v => document.getElementById('loading').classList.toggle('on',v);
+
+async function loadMapa() {
+  load(true);
+  try {
+    ST.mapaData = await get(`${BASE}/mapa/${ST.cargo}_${ST.ano}_t${ST.turno}.json`);
+    renderChoropleth(); buildLegenda(); updateMapLabel(); render();
+  } catch(e) { console.error('loadMapa:',e); ST.mapaData=null; render(); }
+  finally { load(false); }
+}
+
+async function loadMunicipio(cdMun, codTse, nome) {
+  if (!codTse) return;
+  load(true);
+  try {
+    const cod = String(codTse);
+
+    // Check cache across all loaded packages
+    let munData = null;
+    for (const pac of Object.values(ST.pacoteCache)) {
+      if (pac[cod]) { munData=pac[cod]; break; }
+    }
+
+    // Load package if not cached
+    if (!munData) {
+      if (!ST.munIndice) ST.munIndice = await get(`${BASE}/municipio_indice.json`);
+      const pacNum = ST.munIndice[cod];
+      if (pacNum==null) throw new Error(`Índice: ${cod} não encontrado`);
+      const pacKey = `pac_${String(pacNum).padStart(2,'0')}`;
+      if (!ST.pacoteCache[pacKey]) {
+        ST.pacoteCache[pacKey] = await get(`${BASE}/pacotes/${pacKey}.json`);
+      }
+      munData = ST.pacoteCache[pacKey][cod];
+    }
+
+    if (!munData) throw new Error(`Dados de ${cod} não encontrados no pacote`);
+    ST.munData=munData; ST.mun={cdMun,codTse:cod,nome};
+    highlightMun(cdMun); updateScope(); render();
+  } catch(e) { console.error('loadMunicipio:',e); }
+  finally { load(false); }
+}
+
+async function loadSerie() {
+  try {
+    const f=ST.tipo==='geral'?'partidos_majorit.json':'partidos_prefeito.json';
+    ST.partData = await get(`${BASE}/serie/${f}`);
+  } catch(e) { console.error('loadSerie:',e); }
+}
+
+function clearMun() {
+  ST.mun=null; ST.munData=null;
+  if(GLAYER) GLAYER.eachLayer(l=>GLAYER.resetStyle(l));
+  updateScope(); render();
+}
+
+// ── Controls ──────────────────────────────────
+function switchTab(tab) {
+  ST.tab=tab;
+  document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on',b.dataset.tab===tab));
+  if(tab==='partidos'&&!ST.partData) loadSerie().then(render);
+  else render();
+}
+function setTipo(tipo) {
+  ST.tipo=tipo; ST.cargo=tipo==='geral'?'presidente':'prefeito';
+  ST.ano=tipo==='geral'?2022:2024; ST.turno=tipo==='geral'?2:1;
+  clearMun();
+  document.querySelectorAll('[data-tipo]').forEach(b=>b.classList.toggle('on',b.dataset.tipo===tipo));
+  buildCargoChips(); buildAnoChips(); buildTurnoChips();
+  if(ST.tab==='partidos'){ST.partData=null;loadSerie().then(render);}
+  loadMapa();
+}
+function setCargo(c) {
+  ST.cargo=c; ST.turno=1;
+  document.querySelectorAll('[data-cargo]').forEach(b=>b.classList.toggle('on',b.dataset.cargo===c));
+  buildTurnoChips(); loadMapa();
+}
+function setAno(a) {
+  ST.ano=+a;
+  document.querySelectorAll('[data-ano]').forEach(b=>b.classList.toggle('on',+b.dataset.ano===+a));
+  buildTurnoChips(); loadMapa();
+}
+function setTurno(t) {
+  ST.turno=+t;
+  document.querySelectorAll('[data-turno]').forEach(b=>b.classList.toggle('on',+b.dataset.turno===+t));
+  loadMapa();
+}
+
+function buildCargoChips() {
+  const list=ST.tipo==='geral'?CARGOS_GERAL:CARGOS_MUNICIPAL;
+  document.getElementById('cargo-chips').innerHTML=list.map(c=>
+    `<button class="chip ${c===ST.cargo?'on':''}" data-cargo="${c}" onclick="setCargo('${c}')">${CARGO_LABEL[c]}</button>`
+  ).join('');
+}
+function buildAnoChips() {
+  const list=ST.tipo==='geral'?ANOS_GERAL:ANOS_MUNICIPAL;
+  document.getElementById('ano-chips').innerHTML=list.map(a=>
+    `<button class="chip ${a===ST.ano?'on':''}" data-ano="${a}" onclick="setAno(${a})">${a}</button>`
+  ).join('');
+}
+function buildTurnoChips() {
+  const avail=ST.meta
+    ?ST.meta.mapa_disponivel.filter(m=>m.cargo===ST.cargo&&m.ano===ST.ano).map(m=>m.turno).sort()
+    :[ST.turno];
+  const ps=document.getElementById('turno-ps');
+  if(avail.length<=1){ps.classList.add('hidden');ST.turno=avail[0]||1;return;}
+  ps.classList.remove('hidden');
+  if(!avail.includes(ST.turno))ST.turno=avail[0];
+  document.getElementById('turno-chips').innerHTML=avail.map(t=>
+    `<button class="chip ${t===ST.turno?'on':''}" data-turno="${t}" onclick="setTurno(${t})">${t}º Turno</button>`
+  ).join('');
+}
+function updateMapLabel() {
+  document.getElementById('ml-cargo').textContent=CARGO_LABEL[ST.cargo]||ST.cargo;
+  document.getElementById('ml-titulo').textContent=`${ST.turno}º Turno · ${ST.ano}`;
+}
+function updateScope() {
+  const b=document.getElementById('scope-badge'), i=document.getElementById('scope-icon');
+  if(ST.mun){b.textContent=ST.mun.nome.toUpperCase();b.className='on';i.textContent='📍';}
+  else{b.textContent='RIO GRANDE DO SUL';b.className='';i.textContent='🗺';}
+}
+function buildLegenda() {
+  if(!ST.mapaData){document.getElementById('legend-items').innerHTML='';return;}
+  const wins={};
+  Object.values(ST.mapaData).forEach(m=>{const k=`${m.vencedor}||${m.partido_venc}`;wins[k]=(wins[k]||0)+1;});
+  document.getElementById('legend-items').innerHTML=Object.entries(wins)
+    .sort((a,b)=>b[1]-a[1]).slice(0,8).map(([k,n])=>{
+      const [nome,part]=k.split('||');
+      return `<div class="li" onclick="filterByWinner('${k.replace(/'/g,"\\'")}')">
+        <div class="li-dot" style="background:${cor(part)}"></div>
+        <div class="li-info"><div class="li-nome">${nome}</div><div class="li-partido">${part}</div></div>
+        <div class="li-count">${n} mun.</div>
+      </div>`;
+    }).join('');
+}
+function filterByWinner(key) {
+  if(!GLAYER||!ST.mapaData)return;
+  const [nome,part]=key.split('||');
+  GLAYER.eachLayer(l=>{
+    const d=ST.mapaData[l.feature.properties.CD_MUN]; if(!d)return;
+    const match=d.vencedor===nome&&d.partido_venc===part;
+    l.setStyle(match?{weight:2,color:cor(part),fillOpacity:0.92}:{fillOpacity:0.1,weight:0.3,color:'#FFF'});
+  });
+}
+
+// ── Render ────────────────────────────────────
+function render() {
+  if(ST.tab==='candidatos'){ST.mun&&ST.munData?renderMun():renderEstado();}
+  else renderPartidos();
+}
+
+function renderEstado() {
+  const md=ST.mapaData, el=document.getElementById('rp-content');
+  if(!md){el.innerHTML=`<div class="empty">Sem dados para esta seleção.</div>`;return;}
+  const tot={};let gTotal=0,gValid=0,gBranc=0,gNulos=0;
+  Object.values(md).forEach(m=>{
+    gTotal+=m.total||0;gValid+=m.validos||0;gBranc+=m.brancos||0;gNulos+=m.nulos||0;
+    Object.entries(m.candidatos||{}).forEach(([num,c])=>{
+      if(!tot[num])tot[num]={...c,votos:0};tot[num].votos+=c.votos;
+    });
+  });
+  Object.values(tot).forEach(c=>{c.pct=gValid>0?+(c.votos/gValid*100).toFixed(2):0;});
+  const cands=Object.values(tot).sort((a,b)=>b.votos-a.votos);
+  const maxV=cands[0]?.votos||1;
+  const ranking=Object.entries(md).map(([cd,m])=>({...m,cd})).sort((a,b)=>b.pct_venc-a.pct_venc).slice(0,10);
+
+  el.innerHTML=`
+    <div class="rp-hdr">
+      <div><div class="rp-title">Rio Grande do Sul</div>
+      <div class="rp-sub">${CARGO_LABEL[ST.cargo]} · ${ST.turno}º Turno · ${ST.ano}</div></div>
+    </div>
+    <div class="rs">
+      <div class="rs-title">Totais do Estado</div>
+      <div class="tg">
+        <div class="titem"><div class="ti-lbl">Total de votos</div><div class="ti-val">${fv(gTotal)}</div><div class="ti-sub">${fn(gTotal)}</div></div>
+        <div class="titem"><div class="ti-lbl">Votos válidos</div><div class="ti-val">${fv(gValid)}</div><div class="ti-sub">${fp(gTotal>0?gValid/gTotal*100:0)}</div></div>
+      </div>
+      <div class="tg">
+        <div class="titem"><div class="ti-lbl">Brancos</div><div class="ti-val">${fv(gBranc)}</div><div class="ti-sub">${fp(gTotal>0?gBranc/gTotal*100:0)}</div></div>
+        <div class="titem"><div class="ti-lbl">Nulos</div><div class="ti-val">${fv(gNulos)}</div><div class="ti-sub">${fp(gTotal>0?gNulos/gTotal*100:0)}</div></div>
+      </div>
+    </div>
+    <div class="rs">
+      <div class="rs-title">Resultados</div>
+      ${cands.map(c=>{const c2=cor(c.partido),sc=sClass(c.status),sl=sLabel(c.status);
+        return `<div class="ccard ${sc?'hl':''}" style="--pc:${c2}">
+          <div class="cdot"></div>
+          <div class="cinfo"><div class="cnome">${c.nome}</div><div class="cpart">${c.partido}</div></div>
+          <div class="cvotos"><div class="cpct">${fp(c.pct)}</div><div class="cabs">${fv(c.votos)}</div></div>
+          ${sl?`<div class="cstat ${sc}">${sl}</div>`:''}
+          <div class="cbar-wrap"><div class="cbar" style="width:${(c.votos/maxV*100).toFixed(1)}%"></div></div>
+        </div>`;}).join('')}
+    </div>
+    <div class="rs">
+      <div class="rs-title">Ranking · maior % do vencedor</div>
+      <div class="rank-list">
+        ${ranking.map((m,i)=>{const c2=cor(m.partido_venc);
+          return `<div class="ri" onclick="loadMunicipio('${m.cd}','${m.cod_tse}','${m.municipio}')">
+            <div class="rnum">${i+1}</div>
+            <div class="rnome">${m.municipio}</div>
+            <div class="rpct" style="color:${c2}">${fp(m.pct_venc)}</div>
+            <div class="rbar-wrap"><div class="rbar" style="width:${m.pct_venc.toFixed(1)}%;background:${c2}"></div></div>
+          </div>`;}).join('')}
+      </div>
+    </div>`;
+}
+
+function renderMun() {
+  const dm=ST.munData,md=ST.mapaData,el=document.getElementById('rp-content');
+  if(!dm){renderEstado();return;}
+  let regs=[];
+  if(['presidente','governador','senador'].includes(ST.cargo))regs=dm.majoritarias||[];
+  else if(ST.cargo==='prefeito')regs=dm.prefeito||[];
+  else regs=dm.legislativas||[];
+  const fil=regs.filter(r=>r.cargo===ST.cargo&&r.ano===ST.ano&&r.turno===ST.turno);
+  const val=fil.filter(r=>r.numero!=='95'&&r.numero!=='96').sort((a,b)=>b.votos-a.votos);
+  const bco=fil.find(r=>r.numero==='95'),nul=fil.find(r=>r.numero==='96');
+  const maxV=val[0]?.votos||1,gT=val[0]?.total||0,gV=val[0]?.validos||0;
+  const rsD=md?.[ST.mun.cdMun];
+  const cen=[...(dm.censo||[])].filter(c=>c.ano<=ST.ano).pop();
+
+  el.innerHTML=`
+    <div class="rp-hdr">
+      <div><div class="rp-title">${ST.mun.nome}</div>
+      <div class="rp-sub">${CARGO_LABEL[ST.cargo]} · ${ST.turno}º Turno · ${ST.ano}</div></div>
+      <button class="back-btn" onclick="clearMun()">← RS</button>
+    </div>
+    ${val.length===0?`<div class="empty">Sem dados para esta seleção.</div>`:`
+    <div class="rs">
+      <div class="rs-title">Totais do Município</div>
+      <div class="tg">
+        <div class="titem"><div class="ti-lbl">Total votos</div><div class="ti-val">${fv(gT)}</div><div class="ti-sub">${fn(gT)}</div></div>
+        <div class="titem"><div class="ti-lbl">Válidos</div><div class="ti-val">${fv(gV)}</div><div class="ti-sub">${fp(gT>0?gV/gT*100:0)}</div></div>
+      </div>
+      ${bco||nul?`<div class="tg">
+        ${bco?`<div class="titem"><div class="ti-lbl">Brancos</div><div class="ti-val">${fv(bco.votos)}</div><div class="ti-sub">${fp(bco.pct_total)}</div></div>`:'<div></div>'}
+        ${nul?`<div class="titem"><div class="ti-lbl">Nulos</div><div class="ti-val">${fv(nul.votos)}</div><div class="ti-sub">${fp(nul.pct_total)}</div></div>`:'<div></div>'}
+      </div>`:''}
+    </div>
+    <div class="rs">
+      <div class="rs-title">Resultados</div>
+      ${val.map(c=>{const c2=cor(c.partido),sc=sClass(c.status),sl=sLabel(c.status);
+        return `<div class="ccard ${sc?'hl':''}" style="--pc:${c2}">
+          <div class="cdot"></div>
+          <div class="cinfo"><div class="cnome">${c.candidato}</div><div class="cpart">${c.partido}</div></div>
+          <div class="cvotos"><div class="cpct">${fp(c.pct_validos)}</div><div class="cabs">${fv(c.votos)}</div></div>
+          ${sl?`<div class="cstat ${sc}">${sl}</div>`:''}
+          <div class="cbar-wrap"><div class="cbar" style="width:${(c.votos/maxV*100).toFixed(1)}%"></div></div>
+        </div>`;}).join('')}
+    </div>
+    ${rsD?`<div class="rs">
+      <div class="rs-title">Comparação com RS</div>
+      ${Object.entries(rsD.candidatos||{}).sort((a,b)=>b[1].votos-a[1].votos).slice(0,4).map(([num,cRS])=>{
+        const cMun=val.find(s=>String(s.numero)===String(num));
+        const pM=cMun?.pct_validos||0,pR=cRS.pct,df=+(pM-pR).toFixed(1);
+        const c2=cor(cRS.partido);
+        return `<div class="cmp-item">
+          <div class="cmp-head"><span><strong>${cRS.nome}</strong> · ${cRS.partido}</span>
+            <span class="cmp-diff" style="color:${df>=0?'#2E7D32':'#B71C1C'}">${df>=0?'▲':'▼'} ${Math.abs(df)}pp</span></div>
+          <div class="cmp-track"><div class="cmp-fill" style="width:${Math.min(pM,100).toFixed(1)}%;background:${c2}"></div></div>
+          <div class="cmp-vals"><span>Município: <strong>${fp(pM)}</strong></span><span>RS: ${fp(pR)}</span></div>
+        </div>`;}).join('')}
+    </div>`:''}
+    ${cen?`<div class="rs">
+      <div class="rs-title">Perfil Eleitoral · Censo ${cen.ano}</div>
+      <div class="demo-grid">
+        ${cen['Renda Media']!=null?`<div class="ditem"><div class="dlbl">Renda Média</div><div class="dval">${frc(cen['Renda Media'])}</div></div>`:''}
+        ${cen['TOTAL_ELEITORES_PERFIL']!=null?`<div class="ditem"><div class="dlbl">Eleitores</div><div class="dval">${fv(cen['TOTAL_ELEITORES_PERFIL'])}</div></div>`:''}
+        ${cen['Pct Branca']!=null?`<div class="ditem"><div class="dlbl">Pop. Branca</div><div class="dval">${cen['Pct Branca'].toFixed(1)}%</div></div>`:''}
+        ${cen['SUPERIOR COMPLETO']!=null&&cen['TOTAL_ELEITORES_PERFIL']?`<div class="ditem"><div class="dlbl">Sup. Completo</div><div class="dval">${(cen['SUPERIOR COMPLETO']/cen['TOTAL_ELEITORES_PERFIL']*100).toFixed(1)}%</div></div>`:''}
+        ${cen['Pct Preta']!=null?`<div class="ditem"><div class="dlbl">Pop. Preta</div><div class="dval">${cen['Pct Preta'].toFixed(1)}%</div></div>`:''}
+        ${cen['Pct Esgoto Inadequado']!=null?`<div class="ditem"><div class="dlbl">Esgoto Inad.</div><div class="dval">${cen['Pct Esgoto Inadequado'].toFixed(1)}%</div></div>`:''}
+      </div>
+    </div>`:''}
+    `}`;
+}
+
+function renderPartidos() {
+  const el=document.getElementById('rp-content'),pd=ST.partData;
+  if(!pd){el.innerHTML=`<div class="rp-hdr"><div><div class="rp-title">Partidos</div><div class="rp-sub">Carregando...</div></div></div>`;return;}
+  const cargo=ST.tipo==='geral'?ST.cargo:'prefeito';
+  const anosDisp=[...new Set(pd.filter(r=>r.cargo===cargo).map(r=>r.ano))].sort();
+  const anoSel=anosDisp.includes(ST.ano)?ST.ano:anosDisp[anosDisp.length-1];
+  const rows=pd.filter(r=>r.cargo===cargo&&r.ano===anoSel&&r.votos>0).sort((a,b)=>b.votos-a.votos);
+  const maxV=rows[0]?.votos||1,gVbase=rows[0]?.votos_validos||1;
+
+  let munRows=[],isMun=false;
+  if(ST.mun&&ST.munData){
+    const regs=ST.tipo==='geral'?ST.munData.majoritarias:ST.munData.prefeito;
+    const fil=(regs||[]).filter(r=>r.cargo===cargo&&r.ano===anoSel&&r.numero!=='95'&&r.numero!=='96');
+    const byP={};
+    fil.forEach(r=>{
+      if(!byP[r.partido])byP[r.partido]={partido:r.partido,votos:0,total:0,validos:0,eleitos:0};
+      byP[r.partido].votos+=r.votos;byP[r.partido].total=r.total;byP[r.partido].validos=r.validos;
+      if(sClass(r.status)==='eleito')byP[r.partido].eleitos++;
+    });
+    munRows=Object.values(byP).sort((a,b)=>b.votos-a.votos);isMun=munRows.length>0;
+  }
+  const use=isMun?munRows:rows,gVuse=isMun?(use[0]?.validos||1):gVbase,maxVu=use[0]?.votos||1;
+
+  el.innerHTML=`
+    <div class="rp-hdr">
+      <div><div class="rp-title">${isMun?ST.mun.nome:'Rio Grande do Sul'}</div>
+      <div class="rp-sub">Partidos · ${CARGO_LABEL[cargo]} · ${anoSel}</div></div>
+      ${isMun?`<button class="back-btn" onclick="clearMun()">← RS</button>`:''}
+    </div>
+    <div class="rs">
+      <div class="rs-title">Ano</div>
+      <div class="chips">
+        ${anosDisp.map(a=>`<button class="chip ${a===anoSel?'on':''}" onclick="setAno(${a});setTimeout(renderPartidos,50)">${a}</button>`).join('')}
+      </div>
+    </div>
+    <div class="rs">
+      <div class="rs-title">Votos por Partido</div>
+      ${use.slice(0,15).map(r=>{
+        const pts=r.partido_unif||r.partido,c2=cor(pts),pct=gVuse>0?r.votos/gVuse*100:0,ele=r.eleitos||0;
+        return `<div class="ccard" style="--pc:${c2}">
+          <div class="cdot"></div>
+          <div class="cinfo"><div class="cnome">${pts}</div><div class="cpart">${ele>0?`${ele} eleito${ele>1?'s':''}`:'—'}</div></div>
+          <div class="cvotos"><div class="cpct">${fp(pct)}</div><div class="cabs">${fv(r.votos)}</div></div>
+          <div class="cbar-wrap"><div class="cbar" style="width:${(r.votos/maxVu*100).toFixed(1)}%"></div></div>
+        </div>`;}).join('')}
+    </div>`;
+}
+
+// ── Init ──────────────────────────────────────
+async function init() {
+  initMap(); load(true);
+  try {
+    const [meta,geo]=await Promise.all([get(`${BASE}/meta.json`),get(`${BASE}/geo/rs_municipios.geojson`)]);
+    ST.meta=meta; ST.geo=geo;
+    buildCargoChips(); buildAnoChips(); buildTurnoChips();
+    ST.mapaData=await get(`${BASE}/mapa/presidente_2022_t2.json`);
+    renderChoropleth(); buildLegenda(); updateMapLabel(); render();
+  } catch(e) {
+    console.error('Init error:',e);
+    document.getElementById('rp-content').innerHTML=`
+      <div class="empty" style="padding:40px 20px">
+        ⚠️ Erro ao carregar os dados.<br><br>
+        Rode na pasta <code>painel_rs/</code>:<br>
+        <code style="font-size:10px;color:#666">python -m http.server 8080</code>
+      </div>`;
+  } finally { load(false); }
+}
+
+window.addEventListener('DOMContentLoaded',init);
+</script>
+</body>
+</html>
