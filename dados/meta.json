@@ -3,6 +3,66 @@
   "municipios_total": 497,
   "mapa_disponivel": [
     {
+      "cargo": "deputado_estadual",
+      "ano": 2006,
+      "turno": 1,
+      "arquivo": "deputado_estadual_2006_t1.json"
+    },
+    {
+      "cargo": "deputado_estadual",
+      "ano": 2010,
+      "turno": 1,
+      "arquivo": "deputado_estadual_2010_t1.json"
+    },
+    {
+      "cargo": "deputado_estadual",
+      "ano": 2014,
+      "turno": 1,
+      "arquivo": "deputado_estadual_2014_t1.json"
+    },
+    {
+      "cargo": "deputado_estadual",
+      "ano": 2018,
+      "turno": 1,
+      "arquivo": "deputado_estadual_2018_t1.json"
+    },
+    {
+      "cargo": "deputado_estadual",
+      "ano": 2022,
+      "turno": 1,
+      "arquivo": "deputado_estadual_2022_t1.json"
+    },
+    {
+      "cargo": "deputado_federal",
+      "ano": 2006,
+      "turno": 1,
+      "arquivo": "deputado_federal_2006_t1.json"
+    },
+    {
+      "cargo": "deputado_federal",
+      "ano": 2010,
+      "turno": 1,
+      "arquivo": "deputado_federal_2010_t1.json"
+    },
+    {
+      "cargo": "deputado_federal",
+      "ano": 2014,
+      "turno": 1,
+      "arquivo": "deputado_federal_2014_t1.json"
+    },
+    {
+      "cargo": "deputado_federal",
+      "ano": 2018,
+      "turno": 1,
+      "arquivo": "deputado_federal_2018_t1.json"
+    },
+    {
+      "cargo": "deputado_federal",
+      "ano": 2022,
+      "turno": 1,
+      "arquivo": "deputado_federal_2022_t1.json"
+    },
+    {
       "cargo": "governador",
       "ano": 2006,
       "turno": 1,
@@ -205,6 +265,36 @@
       "ano": 2022,
       "turno": 1,
       "arquivo": "senador_2022_t1.json"
+    },
+    {
+      "cargo": "vereador",
+      "ano": 2008,
+      "turno": 1,
+      "arquivo": "vereador_2008_t1.json"
+    },
+    {
+      "cargo": "vereador",
+      "ano": 2012,
+      "turno": 1,
+      "arquivo": "vereador_2012_t1.json"
+    },
+    {
+      "cargo": "vereador",
+      "ano": 2016,
+      "turno": 1,
+      "arquivo": "vereador_2016_t1.json"
+    },
+    {
+      "cargo": "vereador",
+      "ano": 2020,
+      "turno": 1,
+      "arquivo": "vereador_2020_t1.json"
+    },
+    {
+      "cargo": "vereador",
+      "ano": 2024,
+      "turno": 1,
+      "arquivo": "vereador_2024_t1.json"
     }
   ],
   "anos_gerais": [
